@@ -14,6 +14,11 @@ const mainNavItems: NavItem[] = [
         href: '/dashboard',
         icon: LayoutGrid,
     },
+    {
+        title: 'Products',
+        href: '/products',
+        icon: Folder, // Anda bisa mengganti ikonnya
+    },
 ];
 
 const footerNavItems: NavItem[] = [
