@@ -18,10 +18,10 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { format } from 'date-fns';
+import { Card } from '@/components/ui/card';
 
 interface User {
     id: number;
@@ -37,7 +37,7 @@ interface PaginatedUsers {
     // tambahkan properti paginasi lainnya jika diperlukan
 }
 
-const props = defineProps<{
+defineProps<{
     users: PaginatedUsers;
 }>();
 
