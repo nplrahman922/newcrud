@@ -15,12 +15,12 @@ class CheckAdminRole
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Cek jika user sudah login DAN perannya adalah 'admin'
-        if ($request->user() && $request->user()->role === 'admin') {
+        // Cek jika user sudah login DAN perannya adalah 'Admin'
+        if ($request->user() && $request->user()->role === 'Admin') {
             return $next($request);
         }
 
-        // Jika bukan admin, alihkan ke halaman dashboard biasa
+        // Jika bukan Admin, alihkan ke halaman dashboard biasa
         return redirect('/dashboard');
     }
 }
