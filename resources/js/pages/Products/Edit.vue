@@ -5,16 +5,35 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-const props = defineProps({
-    product: Object,
+interface Product {
+    id: number;
+    name: string;
+    description: string | null;
+    photo_path: string | null;
+    video_path: string | null;
+}
+
+// Gunakan withDefaults untuk memberi nilai default pada prop 'product'
+const props = withDefaults(defineProps<{
+    product: Product,
+}>(), {
+    // Berikan struktur objek default
+    product: () => ({
+        id: 0,
+        name: '',
+        description: '',
+        photo_path: null,
+        video_path: null,
+    })
 });
+
 
 const form = useForm({
     _method: 'PUT',
     name: props.product.name,
     description: props.product.description,
-    photo: null,
-    video: null,
+    photo: null as File | null,
+    video: null as File | null,
 });
 
 const submit = () => {

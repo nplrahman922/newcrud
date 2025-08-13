@@ -3,11 +3,22 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { defineProps } from 'vue';
 
-const props = defineProps({
-    products: Array,
-});
+// Definisikan struktur objek Product
+interface Product {
+    id: number;
+    name: string;
+    description: string | null;
+    photo_path: string | null;
+    video_path: string | null;
+}
 
-function getFileUrl(path) {
+// Beritahu TypeScript bahwa 'products' adalah sebuah array dari objek Product
+defineProps<{
+    products: Product[],
+}>();
+
+
+function getFileUrl(path: string) {
     return `/storage/${path}`;
 }
 </script>
