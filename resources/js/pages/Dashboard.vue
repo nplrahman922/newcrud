@@ -2,29 +2,44 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
-import PlaceholderPattern from '../components/PlaceholderPattern.vue';
 import { defineProps, computed } from 'vue';
 import VueApexCharts from 'vue3-apexcharts';
 import { useAppearance } from '@/composables/useAppearance';
 
-// --- BAGIAN BARU UNTUK GRAFIK ---
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Users, Package, DollarSign, CreditCard } from 'lucide-vue-next';
 
-// Mengambil status tema (light/dark) dari composable
-const { appearance } = useAppearance();
-
-// Definisikan interface untuk data yang kita terima dari Laravel
+// --- INTERFACE & PROPS ---
 interface UserStat {
     date: string;
     count: number;
 }
+interface User {
+    id: number;
+    name: string;
+    email: string;
+    avatar_url?: string; // Asumsikan ada avatar, jika tidak ada fallback akan dipakai
+}
+interface Product {
+    id: number;
+    name: string;
+    description: string | null;
+}
 
-// Terima prop 'userRegistrationStats' dari controller
 const props = defineProps<{
-    userRegistrationStats: UserStat[],
     breadcrumbs: BreadcrumbItem[],
+    userRegistrationStats: UserStat[],
+    totalUsers: number,
+    totalProducts: number,
+    recentUsers: User[],
+    recentProducts: Product[],
 }>();
 
-// Gunakan 'computed' untuk memformat data agar sesuai dengan format ApexCharts
+
+// --- KONFIGURASI GRAFIK (TETAP SAMA) ---
+const { appearance } = useAppearance();
+
 const chartData = computed(() => {
     if (!props.userRegistrationStats || props.userRegistrationStats.length === 0) {
         return { dates: [], counts: [] };
@@ -34,120 +49,105 @@ const chartData = computed(() => {
     return { dates, counts };
 });
 
-// Konfigurasi untuk grafik yang sudah disesuaikan dengan tema
 const chartOptions = computed(() => ({
-    chart: {
-        id: 'user-registrations',
-        type: 'line', // <-- UBAH INI
-        height: '100%',
-        parentHeightOffset: 0,
-        toolbar: {
-            show: false,
-        },
-        fontFamily: 'Instrument Sans, sans-serif',
-    },
-    theme: {
-        // Otomatis ganti tema grafik berdasarkan tema aplikasi
-        mode: appearance.value === 'dark' ? 'dark' : 'light'
-    },
+    chart: { id: 'user-registrations', type: 'line', height: '100%', parentHeightOffset: 0, toolbar: { show: false }, fontFamily: 'Instrument Sans, sans-serif' },
+    theme: { mode: appearance.value === 'dark' ? 'dark' : 'light' },
     colors: ['hsl(var(--primary))'],
-    grid: {
-        borderColor: 'hsl(var(--border) / 0.5)',
-        strokeDashArray: 3,
-        padding: {
-            left: 20,
-            bottom: 5,
-        }
-    },
-    plotOptions: {
-        bar: {
-            horizontal: false,
-            columnWidth: '50%',
-            borderRadius: 4,
-        },
-    },
-    dataLabels: {
-        enabled: false
-    },
-    stroke: {
-        show: true,
-        width: 2,
-        colors: ['transparent']
-    },
-    xaxis: {
-        categories: chartData.value.dates,
-        labels: {
-            style: {
-                colors: 'hsl(var(--muted-foreground))',
-                fontSize: '12px',
-            },
-        },
-        axisBorder: { show: false },
-        axisTicks: { show: false },
-    },
-    yaxis: {
-        labels: {
-            style: {
-                colors: 'hsl(var(--muted-foreground))',
-                fontSize: '12px',
-            },
-        },
-    },
-    title: {
-        text: 'Pengguna Baru',
-        align: 'left',
-        margin: 20,
-        style: {
-            fontSize: '16px',
-            fontWeight: '600',
-            // Warna teks judul diambil dari variabel CSS tema
-            color: 'hsl(var(--foreground))'
-        },
-    },
-    tooltip: {
-        theme: appearance.value === 'dark' ? 'dark' : 'light',
-        y: {
-            formatter: (val: number) => `${val} pengguna`
-        }
-    }
+    grid: { borderColor: 'hsl(var(--border) / 0.5)', strokeDashArray: 3, padding: { left: 0, bottom: -10 } },
+    stroke: { width: 2, curve: 'smooth' },
+    markers: { size: 0 },
+    xaxis: { categories: chartData.value.dates, labels: { style: { colors: 'hsl(var(--muted-foreground))', fontSize: '12px' } }, axisBorder: { show: false }, axisTicks: { show: false } },
+    yaxis: { labels: { style: { colors: 'hsl(var(--muted-foreground))', fontSize: '12px' } }, min: 0 },
+    tooltip: { theme: appearance.value === 'dark' ? 'dark' : 'light', y: { formatter: (val: number) => `${val} pengguna` } }
 }));
 
-// Data series untuk grafik
-const series = computed(() => [{
-    name: 'Pengguna Baru',
-    data: chartData.value.counts,
-}]);
+const series = computed(() => [{ name: 'Pengguna Baru', data: chartData.value.counts }]);
+
+// Fungsi untuk membuat inisial dari nama
+const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+};
 </script>
 
 <template>
     <Head title="Dashboard" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 p-4 lg:p-6">
-            <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 bg-card dark:border-sidebar-border">
-                    <PlaceholderPattern />
-                </div>
-                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 bg-card dark:border-sidebar-border">
-                    <PlaceholderPattern />
-                </div>
+        <div class="flex h-full flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
 
-                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 bg-card p-2 dark:border-sidebar-border sm:p-4">
-                    <VueApexCharts
-                        v-if="userRegistrationStats.length > 0"
-                        type="bar"
-                        :options="chartOptions"
-                        :series="series"
-                        height="100%"
-                    />
-                    <div v-else class="flex h-full items-center justify-center text-sm text-muted-foreground">
-                        Tidak ada data pendaftaran.
-                    </div>
-                </div>
+            <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <Card>
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle class="text-sm font-medium">Total Pengguna</CardTitle>
+                        <Users class="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-bold">{{ totalUsers }}</div>
+                        <p class="text-xs text-muted-foreground">+20.1% dari bulan lalu</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle class="text-sm font-medium">Total Produk</CardTitle>
+                        <Package class="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-bold">{{ totalProducts }}</div>
+                        <p class="text-xs text-muted-foreground">+180.1% dari bulan lalu</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle class="text-sm font-medium">Penjualan</CardTitle>
+                        <CreditCard class="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-bold">+12,234</div>
+                        <p class="text-xs text-muted-foreground">+19% dari bulan lalu</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle class="text-sm font-medium">Total Pendapatan</CardTitle>
+                        <DollarSign class="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-bold">Rp 45,231,890</div>
+                        <p class="text-xs text-muted-foreground">+201 sejak kemarin</p>
+                    </CardContent>
+                </Card>
             </div>
 
-            <div class="relative min-h-[400px] flex-1 rounded-xl border border-sidebar-border/70 bg-card dark:border-sidebar-border">
-                <PlaceholderPattern />
+            <div class="grid grid-cols-1 gap-4 lg:grid-cols-7 lg:gap-6">
+                <Card class="lg:col-span-4">
+                    <CardHeader>
+                        <CardTitle>Pendaftaran Pengguna (30 Hari Terakhir)</CardTitle>
+                    </CardHeader>
+                    <CardContent class="pl-2 pr-4">
+                        <div class="h-[300px]">
+                            <VueApexCharts :options="chartOptions" :series="series" height="100%" />
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card class="lg:col-span-3">
+                    <CardHeader>
+                        <CardTitle>Pengguna Baru Mendaftar</CardTitle>
+                        <CardDescription>Ada {{ recentUsers.length }} pengguna baru mendaftar.</CardDescription>
+                    </CardHeader>
+                    <CardContent class="space-y-4">
+                        <div v-for="user in recentUsers" :key="user.id" class="flex items-center">
+                            <Avatar class="h-9 w-9">
+                                <AvatarImage :src="user.avatar_url || '' "  alt="Avatar" />
+                                <AvatarFallback>{{ getInitials(user.name) }}</AvatarFallback>
+                            </Avatar>
+                            <div class="ml-4 space-y-1">
+                                <p class="text-sm font-medium leading-none">{{ user.name }}</p>
+                                <p class="text-sm text-muted-foreground">{{ user.email }}</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </div>
     </AppLayout>
