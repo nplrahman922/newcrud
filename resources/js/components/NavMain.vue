@@ -31,7 +31,7 @@ const isAdmin = computed(() => user.value?.role === 'admin')
                 </template>
                 Manajemen Pengguna
             </SidebarMenuItem>
-            <SidebarMenuItem href="#" :active="false"> <!-- Arahkan ke route('admin.courses.index') nanti -->
+            <SidebarMenuItem :href="route('admin.courses.index')" :active="route().current('admin.courses.*')">
                 <template #icon>
                     <Video :size="16" />
                 </template>
